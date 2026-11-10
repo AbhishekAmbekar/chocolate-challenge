@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The 60 Second Chocolate Challenge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#1e9bff;--deep:#0b3d91;--yellow:#ffd60a;--pink:#ff3d8b;--ink:#10141f;--green:#16a34a;--red:#ef4444}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:radial-gradient(circle at 50% 0,#4fb8ff,#1268d6 70%) fixed;font-family:Nunito,system-ui,sans-serif;color:var(--ink)}
+.wrap{max-width:1040px;margin:0 auto;padding:14px}
+.title{font-family:'Luckiest Guy',cursive;color:#fff;text-align:center;font-size:clamp(26px,5.2vw,48px);letter-spacing:1px;margin:6px 0 10px;line-height:1.05;
+  text-shadow:0 5px 0 var(--ink),3px 3px 0 var(--ink),-3px -3px 0 var(--ink),3px -3px 0 var(--ink),-3px 3px 0 var(--ink)}
+.hud{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.pill{background:#fff;border:3px solid var(--ink);border-radius:14px;padding:6px 12px;font-weight:900;font-size:clamp(14px,2.4vw,20px);box-shadow:0 4px 0 var(--ink);font-variant-numeric:tabular-nums}
+.pill.low{background:var(--red);color:#fff}
+.pill.money{background:var(--green);color:#fff}
+.spacer{flex:1}
+button{font-family:inherit;cursor:pointer}
+.btn{font-family:'Luckiest Guy',cursive;font-size:clamp(16px,2.6vw,22px);letter-spacing:.5px;border:3px solid var(--ink);border-radius:14px;padding:10px 18px;background:var(--yellow);color:var(--ink);box-shadow:0 5px 0 var(--ink);transition:transform .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 var(--ink)}
+.btn.ghost{background:#fff}
+.btn.pink{background:var(--pink);color:#fff}
+.btn.small{font-size:15px;padding:6px 12px;box-shadow:0 4px 0 var(--ink)}
+.mission{background:var(--ink);color:#fff;border-radius:14px;padding:8px 14px;font-weight:800;font-size:clamp(13px,2.2vw,18px);margin-bottom:8px;min-height:42px;display:flex;align-items:center}
+.mission b{color:var(--yellow)}
+.stage{position:relative;border:4px solid var(--ink);border-radius:18px;overflow:hidden;box-shadow:0 8px 0 var(--ink);background:#e9edf3}
+canvas{display:block;width:100%;height:auto;touch-action:none;cursor:pointer}
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(16,20,31,.55);padding:10px}
+.hidden{display:none!important}
+.card{background:#fff;border:4px solid var(--ink);border-radius:18px;box-shadow:0 8px 0 var(--ink);padding:16px 20px;max-width:580px;width:100%;text-align:center;max-height:100%;overflow:auto}
+.card h2{font-family:'Luckiest Guy',cursive;font-size:clamp(22px,4.4vw,38px);margin:0 0 6px;color:var(--pink);letter-spacing:.5px;line-height:1.05}
+.card p{margin:6px 0;font-weight:700;font-size:clamp(13px,2.3vw,17px);line-height:1.35}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.docs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.doc{border:3px solid var(--ink);border-radius:12px;padding:10px 6px;background:#fff8d6;font-weight:800;box-shadow:0 4px 0 var(--ink);font-size:clamp(11px,2.1vw,14px)}
+.doc .dt{font-family:'Luckiest Guy',cursive;font-size:clamp(13px,2.6vw,19px);color:var(--deep);letter-spacing:.3px}
+.doc .q{font-size:clamp(17px,3.6vw,26px);font-weight:900;margin:4px 0}
+.choice{display:block;width:100%;text-align:left;border:3px solid var(--ink);border-radius:12px;padding:10px 12px;background:#eef6ff;margin-top:8px;font-weight:900;font-size:clamp(13px,2.3vw,16px);box-shadow:0 4px 0 var(--ink);color:var(--ink)}
+.choice small{display:block;font-weight:700;color:#475569}
+.feedback{min-height:22px;font-weight:900;color:var(--red);margin-top:8px;font-size:clamp(13px,2.2vw,16px)}
+.banner{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%) rotate(-6deg);font-family:'Luckiest Guy',cursive;font-size:clamp(32px,8vw,84px);color:var(--yellow);
+  text-shadow:0 6px 0 var(--ink),4px 4px 0 var(--ink),-3px -3px 0 var(--ink),3px -3px 0 var(--ink),-3px 3px 0 var(--ink);white-space:nowrap;pointer-events:none;animation:pop .35s ease-out;text-align:center}
+.banner small{display:block;font-size:.36em;color:#fff}
+@keyframes pop{0%{transform:translate(-50%,-50%) rotate(-6deg) scale(.2)}80%{transform:translate(-50%,-50%) rotate(-6deg) scale(1.1)}100%{transform:translate(-50%,-50%) rotate(-6deg) scale(1)}}
+.toast{position:absolute;left:10px;right:10px;bottom:10px;margin:auto;max-width:540px;background:var(--ink);color:#fff;border:3px solid var(--yellow);border-radius:14px;padding:9px 13px;font-weight:800;font-size:clamp(12px,2.1vw,16px);pointer-events:none;animation:slide .3s ease-out;line-height:1.35}
+.toast .tag{display:inline-block;background:var(--yellow);color:var(--ink);border-radius:8px;padding:1px 8px;margin-right:6px;font-family:'Luckiest Guy',cursive;letter-spacing:.5px}
+@keyframes slide{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
+.shake{animation:shake .35s}
+@keyframes shake{20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+.hint{font-size:13px!important;color:#475569}
+.applying{display:inline-block;background:var(--yellow);border:3px solid var(--ink);border-radius:999px;padding:3px 12px;font-weight:900;font-size:13px;margin-bottom:8px}
+.scoreline{font-weight:900;font-size:clamp(16px,3vw,22px)}
+.copied{font-weight:800;color:var(--green);min-height:20px;font-size:14px;margin-top:6px}
+/* resume */
+.resume{margin-top:24px;background:#fff;border:4px solid var(--ink);border-radius:18px;box-shadow:0 8px 0 var(--ink);padding:22px clamp(16px,4vw,36px)}
+.resume .found{font-family:'Luckiest Guy',cursive;color:var(--pink);font-size:clamp(16px,3vw,22px);letter-spacing:.5px}
+.resume h1{font-family:'Luckiest Guy',cursive;font-size:clamp(32px,6vw,54px);margin:2px 0 0;letter-spacing:1px;line-height:1}
+.resume .tagline{font-weight:900;color:var(--deep);margin:6px 0 10px;font-size:clamp(14px,2.5vw,18px)}
+.resume h3{font-family:'Luckiest Guy',cursive;letter-spacing:.5px;color:var(--deep);font-size:22px;margin:22px 0 6px;border-bottom:4px solid var(--yellow);padding-bottom:2px}
+.job{margin:12px 0}
+.job .top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;font-weight:900;font-size:17px}
+.job .top span{color:#475569;font-weight:800;font-size:15px}
+.job .org{font-weight:800;color:var(--pink)}
+.job ul{margin:6px 0 0;padding-left:20px}
+.job li{margin:4px 0;font-weight:600;line-height:1.45}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:2px solid var(--ink);border-radius:999px;padding:3px 10px;font-weight:800;background:#eef6ff;font-size:14px}
+.links{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;align-items:center}
+.links a{text-decoration:none}
+.contact{font-weight:800}
+@media (max-width:720px){
+  .overlay{position:fixed;z-index:50;padding:14px}
+  .card{max-height:92vh}
+  .docs{grid-template-columns:1fr}
+}
+.foot{color:#fff;text-align:center;font-weight:700;font-size:12px;opacity:.9;margin:18px 0 8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="title">The 60 Second Chocolate Challenge</div>
+
+  <div class="hud">
+    <div class="pill" id="timer">⏱ 60s</div>
+    <div class="pill money" id="money">$0</div>
+    <div class="spacer"></div>
+    <button class="btn small ghost" id="skipBtn">Skip to resume ⏭</button>
+  </div>
+  <div class="mission" id="mission">Press PLAY to start.</div>
+
+  <div class="stage" id="stage">
+    <canvas id="cv" width="1000" height="640" aria-label="Warehouse game"></canvas>
+
+    <div class="overlay" id="intro">
+      <div class="card">
+        <div class="applying">Applying for: Supply Chain Operations Analyst</div>
+        <h2>Walmart needs a truck of chocolate. Tonight.</h2>
+        <p>The truck leaves in <b>60 seconds</b>. One analyst. Four problems.</p>
+        <p>Can you get it out the door?</p>
+        <p class="hint">Tap or click anywhere to walk. Arrow keys work too.</p>
+        <div class="row">
+          <button class="btn pink" id="playBtn">▶ Play</button>
+          <button class="btn ghost" id="introSkip">Just show the resume</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="modal"><div class="card" id="modalCard"></div></div>
+    <div class="overlay hidden" id="end"><div class="card" id="endCard"></div></div>
+    <div id="bannerHost"></div>
+    <div id="toastHost"></div>
+  </div>
+
+  <section class="resume hidden" id="resume">
+    <div class="found">🎉 You found the analyst</div>
+    <h1 id="rName">Abhishek Ambekar</h1>
+    <div class="tagline">Supply Chain &amp; Operations · Duke MEM 2026 · NetSuite, SAP MM, Ariba</div>
+    <div class="links" id="rLinks"></div>
+    <p style="font-weight:700;line-height:1.5;margin:14px 0 0">Engineering Management graduate with 2+ years in inventory operations, procurement, and warehouse process improvement. Hands on with Oracle NetSuite WMS and SAP MM, with a track record of raising inventory accuracy and pick productivity through slotting, 5S, and cycle count discipline.</p>
+
+    <h3>Experience</h3>
+    <div class="job">
+      <div class="top">Operations Associate <span>Mar 2025 to May 2026</span></div>
+      <div class="org">Duke University Stores · Durham, USA</div>
+      <ul>
+        <li>Raised order completion productivity 33% by arranging bins by pick frequency, labeling storage locations, and applying 5S and FIFO.</li>
+        <li>Picked, packed, and shipped campus and online orders via UPS and FedEx, scaling to 1,000+ orders during holiday and game day peaks; generated shipping labels and shared tracking to keep customers updated.</li>
+        <li>Maintained 95%+ inventory accuracy across 10,000+ SKUs through cycle counts, inventory reconciliations, and periodic stock audits.</li>
+        <li>Received 15+ inbound POs and processed 50+ transfer orders weekly in Oracle NetSuite WMS; resolved receiving and transfer discrepancies against POs.</li>
+      </ul>
+    </div>
+    <div class="job">
+      <div class="top">Program Manager <span>Oct 2023 to Jun 2024</span></div>
+      <div class="org">I Will Foundation · Mumbai, India</div>
+      <ul>
+        <li>Planned supplies and logistics for 6+ community health checkup drives with a 12 member team serving 1,200+ people; built a 20 to 25% buffer on high demand items and tuned quantities from actual turnout.</li>
+        <li>Coordinated vendors and internal teams across 6+ concurrent programs using Excel based trackers for supplies, transport, and site readiness.</li>
+      </ul>
+    </div>
+    <div class="job">
+      <div class="top">Supply Chain &amp; Operations Engineer <span>Aug 2022 to Aug 2023</span></div>
+      <div class="org">JSW Steel Ltd · Mumbai, India</div>
+      <ul>
+        <li>Owned the RFQ to PO cycle for ~$6M in annual CAPEX/OPEX spend in SAP MM and Ariba; delivered 15% savings on negotiated packages through should cost modeling and supplier negotiation.</li>
+        <li>Built Excel and Power BI dashboards tracking open PO status, supplier delivery performance, and cost center budgets weekly.</li>
+        <li>Managed POs after award, tracking delivery commitments, payment terms, and compliance documents; expedited late suppliers and escalated at risk parts early.</li>
+        <li>Tracked critical spare parts stock against consumption and operating schedules; flagged shortfalls early to prevent stockouts and downtime.</li>
+      </ul>
+    </div>
+
+    <h3>Project</h3>
+    <div class="job">
+      <div class="top"><a href="https://abhishekambekar.github.io/P2P_workbench/" target="_blank" rel="noopener" style="color:inherit">P2P Workbench ↗</a></div>
+      <ul>
+        <li>A live procure to pay workflow tool covering PR, RFx, PO, goods receipt and invoice, with bid scoring, approval routing, and invoice matching to flag PO discrepancies.</li>
+      </ul>
+    </div>
+
+    <h3>Education</h3>
+    <div class="job">
+      <div class="top">Master of Engineering Management <span>Aug 2024 to May 2026</span></div>
+      <div class="org">Duke University · GPA 3.91</div>
+    </div>
+    <div class="job">
+      <div class="top">B.Tech, Mechanical Engineering <span>Aug 2018 to Jun 2022</span></div>
+      <div class="org">K. J. Somaiya College of Engineering · GPA 3.65</div>
+    </div>
+
+    <h3>Skills</h3>
+    <div class="chips">
+      <span class="chip">Warehouse Operations</span><span class="chip">Inventory Management</span><span class="chip">Order Fulfillment</span>
+      <span class="chip">Small Parcel Logistics</span><span class="chip">KPI Reporting &amp; Data Analysis</span><span class="chip">Lean Process Improvement</span>
+      <span class="chip">Cost Analysis</span><span class="chip">Supplier Management</span><span class="chip">Root Cause Analysis</span>
+    </div>
+    <h3>Tools</h3>
+    <div class="chips">
+      <span class="chip">Oracle NetSuite WMS</span><span class="chip">SAP MM</span><span class="chip">Ariba</span><span class="chip">Excel</span>
+      <span class="chip">Power BI</span><span class="chip">Tableau</span><span class="chip">SQL</span><span class="chip">Python</span>
+    </div>
+    <h3>Certifications</h3>
+    <div class="chips">
+      <span class="chip">Lean Six Sigma</span><span class="chip">Rutgers Supply Chain Sourcing &amp; Logistics</span>
+      <span class="chip">Google Project Management</span><span class="chip">Duke Excel to MySQL</span>
+    </div>
+    <p class="hint" style="margin-top:16px;font-weight:700">The PDF has the full version, including consulting work, projects, and leadership.</p>
+    <div class="row" style="justify-content:flex-start;margin-top:10px">
+      <a class="btn pink" href="Abhishek_Ambekar_Resume.pdf" download style="text-decoration:none">⬇ Download resume (PDF)</a>
+      <button class="btn small ghost" id="againBtn2">↻ Play again</button>
+    </div>
+  </section>
+
+  <div class="foot">Fan made by Abhishek Ambekar as part of a job application. Not affiliated with or endorsed by Feastables or MrBeast.</div>
+</div>
+
+<script>
+// ===== Edit these =====
+const CONFIG = {
+  name: "Abhishek Ambekar",
+  linkedin: "https://www.linkedin.com/in/abhishekambekar001",   // e.g. "https://www.linkedin.com/in/your-handle"
+  email: "abhishek.ambekar420@gmail.com"       // e.g. "you@example.com"
+};
+// ======================
+
+const W = 1000, H = 640, START_TIME = 60;
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const dpr = Math.min(window.devicePixelRatio || 1, 2);
+cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+const $ = id => document.getElementById(id);
+const stage = $('stage');
+
+const S = {
+  desk:     {x: 40,  y: 40,  w: 220, h: 120, label: 'PURCHASING', sub: 'DESK', color: '#ffd60a', icon: '🧾'},
+  dispatch: {x: 40,  y: 470, w: 220, h: 130, label: 'DISPATCH',   sub: 'OFFICE', color: '#c4b5fd', icon: '📞'},
+  dry:      {x: 500, y: 480, w: 210, h: 130, label: 'DRY TRUCK',  sub: 'NO A/C', color: '#fca5a5', truck: true},
+  cold:     {x: 760, y: 480, w: 210, h: 130, label: 'COLD TRUCK', sub: '❄ 55°F', color: '#93c5fd', truck: true}
+};
+const RACKS = [{x: 360, y: 30, w: 610, h: 50}, {x: 360, y: 230, w: 610, h: 50}];
+const PALLET_SPOTS = [{x: 450, y: 155}, {x: 665, y: 155}, {x: 880, y: 155}];
+
+let phase, time, money, shownMoney, m, p, tap, keys = {}, pallets, wasDry, fx, confetti, truckOut, loaded, t0 = 0;
+
+function reset() {
+  phase = 'intro'; time = START_TIME; money = 0; shownMoney = 0; m = 0;
+  p = {x: 470, y: 380, face: 1, walk: 0, moving: false, carry: 0};
+  tap = null; wasDry = false; fx = []; confetti = []; truckOut = 0; loaded = false;
+  pallets = PALLET_SPOTS.map(s => ({...s, got: false}));
+  setMission('Press PLAY to start.');
+}
+
+function setMission(html) { $('mission').innerHTML = html; }
+const MISSIONS = [
+  '<span><b>Mission 1:</b> The supplier invoice looks off. Run to the <b>Purchasing Desk!</b></span>',
+  '<span><b>Mission 2:</b> Grab all <b>3 pallets</b> of chocolate from the racks!</span>',
+  '<span><b>🔥 HEAT WAVE!</b> Chocolate melts fast. Load the pallets on the <b>right truck!</b></span>',
+  '<span><b>📵 Carrier cancelled!</b> Run to <b>Dispatch</b> and book a backup.</span>'
+];
+
+function startGame() {
+  reset(); phase = 'play';
+  $('intro').classList.add('hidden'); $('end').classList.add('hidden');
+  setMission(MISSIONS[0]);
+}
+
+// ---------- input ----------
+function toWorld(e) {
+  const r = cv.getBoundingClientRect();
+  return {x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height};
+}
+let pointerDown = false;
+cv.addEventListener('pointerdown', e => { pointerDown = true; tap = toWorld(e); });
+cv.addEventListener('pointermove', e => { if (pointerDown) tap = toWorld(e); });
+window.addEventListener('pointerup', () => pointerDown = false);
+const KEYMAP = {ArrowLeft: 'l', a: 'l', A: 'l', ArrowRight: 'r', d: 'r', D: 'r', ArrowUp: 'u', w: 'u', W: 'u', ArrowDown: 'dn', s: 'dn', S: 'dn'};
+window.addEventListener('keydown', e => { if (KEYMAP[e.key] && phase === 'play') { keys[KEYMAP[e.key]] = true; e.preventDefault(); } });
+window.addEventListener('keyup', e => { if (KEYMAP[e.key]) keys[KEYMAP[e.key]] = false; });
+
+// ---------- helpers ----------
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const near = (s, pad = 8) => p.x > s.x - pad && p.x < s.x + s.w + pad && p.y > s.y - pad && p.y < s.y + s.h + pad;
+const fmt = n => (n < 0 ? '-$' : '$') + Math.abs(Math.round(n)).toLocaleString('en-US');
+
+function addMoney(n, x, y) {
+  money += n;
+  fx.push({x: x ?? p.x, y: (y ?? p.y) - 40, txt: (n > 0 ? '+' : '') + fmt(n), color: n > 0 ? '#16a34a' : '#ef4444', t: 0});
+}
+function shake(el = stage) { el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
+
+let toastTimer;
+function toast(html, ms = 4200) {
+  clearTimeout(toastTimer);
+  $('toastHost').innerHTML = `<div class="toast">${html}</div>`;
+  toastTimer = setTimeout(() => $('toastHost').innerHTML = '', ms);
+}
+function banner(title, sub, cb) {
+  phase = 'banner'; tap = null; keys = {};
+  $('bannerHost').innerHTML = `<div class="banner">${title}<small>${sub}</small></div>`;
+  setTimeout(() => { $('bannerHost').innerHTML = ''; phase = 'play'; cb && cb(); }, 1700);
+}
+
+// ---------- mini games ----------
+function openMatch() {
+  phase = 'modal'; tap = null; keys = {};
+  const docs = [
+    {k: 'po', t: 'Purchase Order', q: '500 cases', s: '$30 per case'},
+    {k: 'gr', t: 'Goods Receipt', q: '500 cases', s: 'received at dock'},
+    {k: 'inv', t: 'Invoice', q: '550 cases', s: 'billed $16,500'}
+  ];
+  $('modalCard').innerHTML = `
+    <h2>Spot the mismatch!</h2>
+    <p>One of these doesn't agree with the others. Tap it before you pay the supplier.</p>
+    <div class="docs">${docs.map(d => `<button class="doc" data-k="${d.k}"><div class="dt">${d.t}</div><div class="q">${d.q}</div>${d.s}</button>`).join('')}</div>
+    <div class="feedback" id="fb"></div>`;
+  $('modal').classList.remove('hidden');
+  $('modalCard').querySelectorAll('.doc').forEach(b => b.onclick = () => {
+    if (b.dataset.k === 'inv') {
+      $('modal').classList.add('hidden'); phase = 'play';
+      addMoney(10000, S.desk.x + S.desk.w / 2, S.desk.y + 60);
+      toast(`<span class="tag">Real life</span>That's a three way match. I ran the full procure to pay cycle in SAP MM and Ariba at JSW Steel.`);
+      m = 1; setMission(MISSIONS[1]);
+    } else {
+      addMoney(-1000); shake($('modalCard'));
+      $('fb').textContent = 'That one matches. Look again!';
+    }
+  });
+}
+
+function openCarrier() {
+  phase = 'modal'; tap = null; keys = {};
+  const opts = [
+    {k: 'cheap', t: 'Budget Freight', s: '$1,200 · arrives 2 days late'},
+    {k: 'good',  t: 'Reliable Carrier', s: '$2,000 · on time'},
+    {k: 'air',   t: 'Express Air', s: '$9,500 · on time'}
+  ].sort(() => Math.random() - .5);
+  $('modalCard').innerHTML = `
+    <h2>Book a backup carrier!</h2>
+    <p>Walmart wants it on time. Finance wants it on budget. Pick one.</p>
+    ${opts.map(o => `<button class="choice" data-k="${o.k}">${o.t}<small>${o.s}</small></button>`).join('')}
+    <div class="feedback" id="fb"></div>`;
+  $('modal').classList.remove('hidden');
+  $('modalCard').querySelectorAll('.choice').forEach(b => b.onclick = () => {
+    const k = b.dataset.k;
+    if (k === 'good') {
+      $('modal').classList.add('hidden');
+      addMoney(20000, S.dispatch.x + S.dispatch.w / 2, S.dispatch.y + 40);
+      toast(`<span class="tag">Real life</span>Cheapest isn't always best. At JSW Steel I built should cost models to compare bids and saved 15% on capital equipment.`, 5200);
+      win();
+    } else {
+      addMoney(-3000); shake($('modalCard'));
+      $('fb').textContent = k === 'cheap'
+        ? 'Late means a missed delivery window and a fine. Try again!'
+        : 'On time, but you just blew the freight budget. Try again!';
+    }
+  });
+}
+
+// ---------- flow ----------
+function checkMission() {
+  if (m === 0 && near(S.desk)) openMatch();
+  else if (m === 1) {
+    pallets.forEach(pl => {
+      if (!pl.got && Math.hypot(p.x - pl.x, p.y - pl.y) < 50) { pl.got = true; p.carry++; addMoney(2000, pl.x, pl.y); }
+    });
+    if (p.carry === 3) {
+      m = 1.5;
+      toast(`<span class="tag">Real life</span>At Duke University Stores I picked, packed and shipped via UPS and FedEx, up to 1,000+ orders in holiday peaks, and ran receiving in NetSuite WMS.`);
+      banner('🔥 HEAT WAVE! 🔥', 'Chocolate melts in the heat', () => { m = 2; setMission(MISSIONS[2]); });
+    }
+  } else if (m === 2) {
+    const inDry = near(S.dry, 0);
+    if (inDry && !wasDry) {
+      addMoney(-5000); shake();
+      toast('<span class="tag">Oops</span>The bars melted! Chocolate needs the cold truck.', 3000);
+      p.y = S.dry.y - 40; tap = null;
+    }
+    wasDry = near(S.dry, 0);
+    if (near(S.cold, 0)) {
+      p.carry = 0; loaded = true; m = 2.5;
+      addMoney(15000, S.cold.x + S.cold.w / 2, S.cold.y);
+      banner('📵 CARRIER CANCELLED!', 'Your truck has no driver', () => { m = 3; setMission(MISSIONS[3]); });
+    }
+  } else if (m === 3 && near(S.dispatch)) openCarrier();
+}
+
+function win() {
+  phase = 'outro'; tap = null;
+  setMission('<span><b>🚚 Truck is rolling!</b></span>');
+  for (let i = 0; i < 160; i++) confetti.push({
+    x: Math.random() * W, y: -Math.random() * 300, vx: (Math.random() - .5) * 120, vy: 120 + Math.random() * 220,
+    r: Math.random() * 6, c: ['#ffd60a', '#ff3d8b', '#1e9bff', '#16a34a', '#fff'][i % 5], a: Math.random() * 6
+  });
+  setTimeout(() => endGame(true), 1700);
+}
+
+function endGame(won) {
+  phase = 'end';
+  let bonus = 0;
+  if (won) { bonus = Math.ceil(time) * 500; money += bonus; }
+  const score = fmt(money);
+  const msg = `I scored ${score} on Abhishek's 60 Second Chocolate Challenge.`;
+  $('endCard').innerHTML = won ? `
+      <h2>MISSION COMPLETE! 🎉</h2>
+      <div class="scoreline">${score} earned</div>
+      <p>Includes a ${fmt(bonus)} time bonus for ${Math.ceil(time)}s left.</p>
+      <p>You just did a supply chain operations analyst's job for 60 seconds.<br><b>Want the guy who does it for real?</b></p>`
+    : `
+      <h2>THE TRUCK LEFT WITHOUT YOU!</h2>
+      <div class="scoreline">${score}</div>
+      <p>Real supply chains don't wait either.<br><b>Want the guy who'd get it out on time?</b></p>`;
+  $('endCard').innerHTML += `
+      <div class="row">
+        <button class="btn pink" id="meetBtn">Meet Abhishek →</button>
+        <button class="btn ghost" id="againBtn">↻ Play again</button>
+      </div>
+      <div class="row"><button class="btn small ghost" id="copyBtn">Copy my score</button></div>
+      <div class="copied" id="copied"></div>`;
+  $('end').classList.remove('hidden');
+  setMission(won ? '<span><b>You did it.</b> Now meet the real analyst below.</span>' : '<span><b>Out of time.</b> Try again or meet the real analyst.</span>');
+  $('meetBtn').onclick = showResume;
+  $('againBtn').onclick = startGame;
+  $('copyBtn').onclick = async () => {
+    const tail = CONFIG.email ? ` Send it to ${CONFIG.email} and dare me to beat it.` : ' Send it to Abhishek and dare him to beat it.';
+    try { await navigator.clipboard.writeText(msg); $('copied').textContent = 'Copied!' + tail; }
+    catch { $('copied').textContent = msg; }
+  };
+}
+
+function showResume() {
+  if (phase === 'play' || phase === 'intro') { phase = 'paused'; }
+  ['intro', 'end', 'modal'].forEach(id => $(id).classList.add('hidden'));
+  if (phase === 'paused') setMission('<span><b>Paused.</b> Tap Play again under the resume to restart.</span>');
+  $('resume').classList.remove('hidden');
+  $('resume').scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+
+// ---------- update ----------
+function update(dt) {
+  fx.forEach(f => f.t += dt); fx = fx.filter(f => f.t < 1.2);
+  confetti.forEach(c => { c.x += c.vx * dt; c.y += c.vy * dt; c.a += dt * 6; });
+  confetti = confetti.filter(c => c.y < H + 20);
+  shownMoney += (money - shownMoney) * Math.min(1, dt * 8);
+  $('money').textContent = fmt(shownMoney);
+  $('timer').textContent = '⏱ ' + Math.ceil(time) + 's';
+  $('timer').classList.toggle('low', time <= 10 && phase !== 'intro');
+  if (phase === 'outro') { truckOut += dt * 600; return; }
+  if (phase !== 'play') return;
+
+  time -= dt;
+  if (time <= 0) { time = 0; endGame(false); return; }
+
+  let vx = 0, vy = 0;
+  if (keys.l) vx -= 1; if (keys.r) vx += 1; if (keys.u) vy -= 1; if (keys.dn) vy += 1;
+  if (vx || vy) { tap = null; const l = Math.hypot(vx, vy); vx /= l; vy /= l; }
+  else if (tap) {
+    const dx = tap.x - p.x, dy = tap.y - p.y, d = Math.hypot(dx, dy);
+    if (d < 6) tap = null; else { vx = dx / d; vy = dy / d; }
+  }
+  const sp = 360;
+  p.x = clamp(p.x + vx * sp * dt, 24, W - 24);
+  p.y = clamp(p.y + vy * sp * dt, 40, H - 20);
+  p.moving = !!(vx || vy);
+  if (vx) p.face = vx > 0 ? 1 : -1;
+  if (p.moving) p.walk += dt * 14;
+  checkMission();
+}
+
+// ---------- drawing ----------
+function rr(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function label(txt, x, y, size, color = '#10141f', stroke) {
+  ctx.font = `${size}px 'Luckiest Guy', Impact, sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  if (stroke) { ctx.lineWidth = 6; ctx.strokeStyle = stroke; ctx.lineJoin = 'round'; ctx.strokeText(txt, x, y); }
+  ctx.fillStyle = color; ctx.fillText(txt, x, y);
+}
+
+function drawFloor() {
+  ctx.fillStyle = '#dfe5ee'; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = '#cfd7e3'; ctx.lineWidth = 2;
+  for (let x = 0; x < W; x += 50) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+  for (let y = 0; y < H; y += 50) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+  // hazard stripe in front of docks
+  for (let x = 480; x < W; x += 30) {
+    ctx.fillStyle = (x / 30) % 2 ? '#ffd60a' : '#10141f';
+    ctx.fillRect(x, 452, 30, 12);
+  }
+}
+
+function drawRacks() {
+  RACKS.forEach(r => {
+    rr(r.x, r.y, r.w, r.h, 8); ctx.fillStyle = '#1d4ed8'; ctx.fill(); ctx.lineWidth = 4; ctx.strokeStyle = '#10141f'; ctx.stroke();
+    for (let x = r.x + 12; x < r.x + r.w - 40; x += 48) {
+      rr(x, r.y + 8, 36, r.h - 16, 4); ctx.fillStyle = '#c08a4b'; ctx.fill(); ctx.lineWidth = 2; ctx.stroke();
+    }
+  });
+  label('RACKS', 400, 125, 22, '#1d4ed8');
+}
+
+function drawPallet(x, y, s = 1) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  rr(-30, 14, 60, 10, 3); ctx.fillStyle = '#a16207'; ctx.fill(); ctx.lineWidth = 3; ctx.strokeStyle = '#10141f'; ctx.stroke();
+  const cols = ['#ff3d8b', '#1e9bff', '#ffd60a', '#16a34a'];
+  for (let i = 0; i < 4; i++) {
+    rr(-28 + (i % 2) * 28, -18 + Math.floor(i / 2) * 16, 28, 16, 3);
+    ctx.fillStyle = cols[i]; ctx.fill(); ctx.lineWidth = 2.5; ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawStation(s, key, t) {
+  const active = isTarget(key);
+  if (s.truck) return drawTruck(s, key, active, t);
+  if (active) { rr(s.x - 8, s.y - 8, s.w + 16, s.h + 16, 22); ctx.fillStyle = `rgba(255,214,10,${0.35 + 0.25 * Math.sin(t * 6)})`; ctx.fill(); }
+  rr(s.x, s.y, s.w, s.h, 16); ctx.fillStyle = s.color; ctx.fill(); ctx.lineWidth = 5; ctx.strokeStyle = '#10141f'; ctx.stroke();
+  ctx.font = '40px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(s.icon, s.x + s.w / 2, s.y + 38);
+  label(s.label, s.x + s.w / 2, s.y + 80, 28);
+  label(s.sub, s.x + s.w / 2, s.y + 106, 18, '#334155');
+}
+
+function drawTruck(s, key, active, t) {
+  const off = (key === 'cold' ? truckOut : 0);
+  ctx.save(); ctx.translate(off, 0);
+  if (active) { rr(s.x - 8, s.y - 8, s.w + 16, s.h + 16, 22); ctx.fillStyle = `rgba(255,214,10,${0.35 + 0.25 * Math.sin(t * 6)})`; ctx.fill(); }
+  // trailer
+  rr(s.x, s.y + 6, s.w, s.h - 34, 12); ctx.fillStyle = s.color; ctx.fill(); ctx.lineWidth = 5; ctx.strokeStyle = '#10141f'; ctx.stroke();
+  // cab (below trailer, facing down)
+  rr(s.x + s.w / 2 - 40, s.y + s.h - 30, 80, 28, 8); ctx.fillStyle = '#f8fafc'; ctx.fill(); ctx.stroke();
+  // wheels
+  ctx.fillStyle = '#10141f';
+  [[s.x + 18, s.y + s.h - 22], [s.x + s.w - 18, s.y + s.h - 22]].forEach(([x, y]) => { ctx.beginPath(); ctx.arc(x, y, 10, 0, 7); ctx.fill(); });
+  label(s.label, s.x + s.w / 2, s.y + 38, 28);
+  label(s.sub, s.x + s.w / 2, s.y + 68, 20, '#334155');
+  if (key === 'cold' && loaded) { drawPallet(s.x + 60, s.y + 80, .6); drawPallet(s.x + 105, s.y + 80, .6); drawPallet(s.x + 150, s.y + 80, .6); }
+  ctx.restore();
+}
+
+function isTarget(key) {
+  if (phase !== 'play' && phase !== 'banner') return false;
+  if (m === 0) return key === 'desk';
+  if (m === 2) return key === 'dry' || key === 'cold';
+  if (m === 3) return key === 'dispatch';
+  return false;
+}
+
+function drawArrow(t) {
+  let tx, ty;
+  if (m === 0) { tx = S.desk.x + S.desk.w / 2; ty = S.desk.y + S.desk.h + 30; }
+  else if (m === 3) { tx = S.dispatch.x + S.dispatch.w / 2; ty = S.dispatch.y - 20; }
+  else if (m === 1) { const pl = pallets.find(q => !q.got); if (!pl) return; tx = pl.x; ty = pl.y - 40; }
+  else return;
+  const b = Math.sin(t * 8) * 8;
+  const up = m === 0; // arrow below desk points up
+  ctx.save(); ctx.translate(tx, ty + (up ? -b : b));
+  ctx.beginPath();
+  if (up) { ctx.moveTo(0, -14); ctx.lineTo(18, 10); ctx.lineTo(-18, 10); }
+  else { ctx.moveTo(0, 14); ctx.lineTo(18, -10); ctx.lineTo(-18, -10); }
+  ctx.closePath(); ctx.fillStyle = '#ff3d8b'; ctx.fill(); ctx.lineWidth = 4; ctx.strokeStyle = '#10141f'; ctx.stroke();
+  ctx.restore();
+}
+
+function drawPlayer() {
+  const {x, y} = p, sw = p.moving ? Math.sin(p.walk) * 7 : 0;
+  ctx.save(); ctx.translate(x, y);
+  ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(0, 26, 22, 7, 0, 0, 7); ctx.fill();
+  ctx.lineWidth = 4; ctx.strokeStyle = '#10141f';
+  // legs
+  ctx.fillStyle = '#1e293b';
+  rr(-12 + sw * .3, 8, 9, 18 + sw, 4); ctx.fill();
+  rr(3 - sw * .3, 8, 9, 18 - sw, 4); ctx.fill();
+  // body
+  rr(-17, -14, 34, 28, 10); ctx.fillStyle = '#ff3d8b'; ctx.fill(); ctx.stroke();
+  // vest stripe
+  ctx.fillStyle = '#ffd60a'; ctx.fillRect(-15, -2, 30, 5);
+  // head
+  ctx.beginPath(); ctx.arc(0, -30, 15, 0, 7); ctx.fillStyle = '#c68642'; ctx.fill(); ctx.stroke();
+  // eyes
+  ctx.fillStyle = '#10141f';
+  ctx.beginPath(); ctx.arc(-5 + p.face * 3, -31, 2.4, 0, 7); ctx.arc(5 + p.face * 3, -31, 2.4, 0, 7); ctx.fill();
+  // smile
+  ctx.beginPath(); ctx.lineWidth = 2.5; ctx.arc(p.face * 3, -27, 5, .2, Math.PI - .2); ctx.stroke();
+  // hard hat
+  ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.arc(0, -36, 15, Math.PI, 0); ctx.closePath(); ctx.fillStyle = '#ffd60a'; ctx.fill(); ctx.stroke();
+  rr(-19, -38, 38, 6, 3); ctx.fill(); ctx.stroke();
+  // carried pallets
+  for (let i = 0; i < p.carry; i++) drawPallet(0, -70 - i * 26, .55);
+  ctx.restore();
+}
+
+function draw(t) {
+  drawFloor(); drawRacks();
+  pallets.forEach(pl => { if (!pl.got) drawPallet(pl.x, pl.y); });
+  Object.entries(S).forEach(([k, s]) => drawStation(s, k, t));
+  if (phase === 'play') drawArrow(t);
+  if (tap && phase === 'play') { ctx.beginPath(); ctx.arc(tap.x, tap.y, 10, 0, 7); ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,61,139,.8)'; ctx.stroke(); }
+  drawPlayer();
+  fx.forEach(f => label(f.txt, f.x, f.y - f.t * 60, 30, f.color, '#fff'));
+  confetti.forEach(c => { ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(c.a); ctx.fillStyle = c.c; ctx.fillRect(-c.r, -c.r / 2, c.r * 2, c.r); ctx.restore(); });
+}
+
+function loop(ts) {
+  const t = ts / 1000, dt = Math.min(0.05, t - (t0 || t)); t0 = t;
+  update(dt); draw(t);
+  requestAnimationFrame(loop);
+}
+
+// ---------- wire up ----------
+function fillContact() {
+  $('rName').textContent = CONFIG.name;
+  const L = $('rLinks'); L.innerHTML = '';
+  if (CONFIG.linkedin) L.innerHTML += `<a class="btn small" href="${CONFIG.linkedin}" target="_blank" rel="noopener">LinkedIn ↗</a>`;
+  if (CONFIG.email) L.innerHTML += `<span class="contact">✉ ${CONFIG.email}</span>`;
+}
+$('playBtn').onclick = startGame;
+$('introSkip').onclick = showResume;
+$('skipBtn').onclick = showResume;
+$('againBtn2').onclick = () => { window.scrollTo({top: 0, behavior: 'smooth'}); startGame(); };
+fillContact();
+reset();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
